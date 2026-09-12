@@ -11,11 +11,6 @@ function log() {
     echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") [controller] [${level}] ${msg}"
 }
 
-if ((TOR_INSTANCES < 1 || TOR_INSTANCES > 40)); then
-    log "fatal" "Environment variable TOR_INSTANCES has to be within the range of 1...40"
-    exit 1
-fi
-
 if ((TOR_REBUILD_INTERVAL < 600)); then
     log "fatal" "Environment variable TOR_REBUILD_INTERVAL has to be bigger than 600 seconds"
     # otherwise AWS may complain about it, because http://checkip.amazonaws.com is asked too often
@@ -109,12 +104,13 @@ curl -sx "http://127.0.0.1:3128" https://www.apple.com >/dev/null
 # endless loop to reset circuits
 #
 while :; do
-    log "Wait ${TOR_REBUILD_INTERVAL} seconds to rebuild all the tor circuits"
+    log "Wait ${TOR_REBUILD_INTERVAL} seconds before the next identity check pass"
     sleep "$((TOR_REBUILD_INTERVAL))"
-    log "Rebuilding all the tor circuits..."
+    log "Checking current exit IP for all instances..."
     for ((i = 0; i < TOR_INSTANCES; i++)); do
         http_port=$((base_http_port + i))
-        IP=$(curl -sx "http://127.0.0.1:${http_port}" http://checkip.amazonaws.com)
+        IP=$(curl -sx "http://127.0.0.1:${http_port}" https://api.ipify.org)
         log "Current external IP address of proxy #${i}/${TOR_INSTANCES}: ${IP}"
+        sleep "${IP_CHECK_STAGGER_SECONDS:-1}"
     done
 done

@@ -1,0 +1,16 @@
+steps:
+  - name: build-rotating-tor-proxy-stg
+    image: moby/buildkit:latest
+    commands:
+      - 'buildctl --addr tcp://buildkit.buildkit.svc.cluster.local:1234 build --frontend dockerfile.v0 -local context=./ -local dockerfile=./ --output type=image,\"name=zot.zot:5000/pokepricing/rotating-tor-proxy:latest,zot.zot:5000/pokepricing/rotating-tor-proxy:${CI_COMMIT_SHA}\",push=true,registry.insecure=true'
+    when:
+      - event: push
+        branch: exclude:main
+
+  - name: build-rotating-tor-proxy-prd
+    image: moby/buildkit:latest
+    commands:
+      - 'buildctl --addr tcp://buildkit.buildkit.svc.cluster.local:1234 build --frontend dockerfile.v0 -local context=./ -local dockerfile=./ --output type=image,\"name=zot.zot:5000/pokepricing/rotating-tor-proxy:latest,zot.zot:5000/pokepricing/rotating-tor-proxy:${CI_COMMIT_SHA},zot.zot:5000/pokepricing/rotating-tor-proxy:main\",push=true,registry.insecure=true'
+    when:
+      - event: [push, manual]
+        branch: main
