@@ -90,6 +90,17 @@ for ((i = 0; i < TOR_INSTANCES; i++)); do
     #
     echo "  server privoxy${i} 127.0.0.1:${http_port} check" >>/etc/haproxy/haproxy.cfg
 done
+
+base_pinned_port=40000
+for ((i = 0; i < TOR_INSTANCES; i++)); do
+    cat >>/etc/haproxy/haproxy.cfg <<EOF
+
+listen pinned${i}
+  bind 0.0.0.0:$((base_pinned_port + i))
+  server privoxy${i} 127.0.0.1:$((base_http_port + i)) check
+EOF
+done
+
 #
 # start an HAProxy instance
 #
