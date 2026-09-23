@@ -48,7 +48,7 @@ if [[ -n $TOR_EXIT_COUNTRY ]]; then
     done
     country_str=$(tr '[:upper:]' '[:lower:]' <<< "$value")
     if [[ -n $country_str ]]; then
-        echo ExitNodes "$country_str" StrictNodes 1 >> /etc/tor/torrc
+        printf 'ExitNodes %s\nStrictNodes 1\n' "$country_str" >> /etc/tor/torrc
         log "Limited the exit nodes to countries: \"${TOR_EXIT_COUNTRY}\""
     fi
 fi
